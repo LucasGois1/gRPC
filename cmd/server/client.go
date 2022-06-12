@@ -19,7 +19,7 @@ func main() {
 	defer connection.Close()
 
 	client := pb.NewUserServiceClient(connection)
-	AddUserVerbose(client)
+	AddUsers(client)
 }
 
 func GetUser(client pb.UserServiceClient) {
@@ -64,4 +64,31 @@ func AddUserVerbose(client pb.UserServiceClient) {
 
 		fmt.Printf("Response: %v\n", response)
 	}
+}
+
+func AddUsers(client pb.UserServiceClient) {
+
+	stream, err := client.AddUsers(context.Background())
+
+	if err != nil {
+		panic(err)
+	}
+
+	for i := 0; i < 10; i++ {
+		req := pb.User{
+			Id:    int32(i),
+			Name:  "Lucas " + string(i),
+			Email: "lucas" + string(i) + "@mail.com",
+		}
+
+		stream.Send(&req)
+	}
+
+	response, err := stream.CloseAndRecv()
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Response: %v\n", response)
 }
